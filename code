@@ -1,0 +1,94 @@
+hi again i made a python assistant that only works on WINDOWS. first you need to install python 3.14 and then paste the given code given below.
+import asyncio
+import edge_tts
+import os
+import webbrowser
+import speech_recognition as sr
+import sounddevice as sd
+
+recognizer = sr.Recognizer()
+
+# Speak using Edge TTS
+async def speak(text):
+    tts = edge_tts.Communicate(text, "en-US-AriaNeural")
+    await tts.save("voice.mp3")
+    os.startfile("voice.mp3")  # plays with default media player
+
+# Listen using sounddevice (no PyAudio needed)
+def listen():
+    duration = 5   # seconds
+    fs = 16000     # sample rate
+
+    print("Listening for 5 seconds...")
+    recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
+    sd.wait()
+
+    audio_data = sr.AudioData(recording.tobytes(), fs, 2)
+
+    try:
+        command = recognizer.recognize_google(audio_data).lower()
+        print(f"You said: {command}")
+        return command
+    except sr.UnknownValueError:
+        asyncio.run(speak("Sorry, I didn't catch that."))
+        return None
+    except sr.RequestError:
+        asyncio.run(speak("Speech service is unavailable."))
+        return None
+
+# Execute commands
+def open_app(command):
+    if "settings" in command:
+        asyncio.run(speak("Opening Windows Settings"))
+        os.system("start ms-settings:")
+
+    elif "browser" in command or "internet" in command:
+        asyncio.run(speak("Opening your default browser"))
+        webbrowser.open("https://www.example.com")  # always opens in default browser
+
+    elif "cmd" in command or "command prompt" in command:
+        asyncio.run(speak("Opening Command Prompt"))
+        os.system("start cmd")
+
+    elif "powershell" in command:
+        asyncio.run(speak("Opening PowerShell"))
+        os.system("start powershell")
+
+    elif "paint" in command:
+        asyncio.run(speak("Opening Paint"))
+        os.system("start mspaint")
+
+    elif "explorer" in command or "file explorer" in command:
+        asyncio.run(speak("Opening File Explorer"))
+        os.system("explorer")
+
+    elif "control panel" in command:
+        asyncio.run(speak("Opening Control Panel"))
+        os.system("control")
+
+    elif "search for" in command:
+        query = command.replace("search for", "").strip()
+        if query:
+            asyncio.run(speak(f"Searching for {query} in your default browser"))
+            webbrowser.open(f"https://www.bing.com/search?q={query}")
+        else:
+            asyncio.run(speak("What would you like me to search for?"))
+
+    else:
+        asyncio.run(speak("I don't know that app yet."))
+
+# Main loop
+while True:
+    command = listen()
+    if command:
+        if "exit" in command or "quit" in command:
+            asyncio.run(speak("Goodbye Yug!"))
+            break
+        else:
+            open_app(command)
+
+
+NOTE: this will only open apps by saying internet,cmd,powershell,windows settings,paint,explorer and control panel 
+NOTE 2: please say things fast because after 5 sec it will say "sorry,i could not catch that."
+
+thx for your cooperation.
